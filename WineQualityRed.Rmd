@@ -1,0 +1,103 @@
+---
+title: "WineQuality"
+author: "Joseph Barr"
+date: "10/7/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+Quality is the Response Variable and is measured between 1 and 10.
+```{r}
+wine_red <- read.csv("~/Data 467/winequality-red.csv",sep = ';')
+fixedAcidity = wine_red$fixed.acidity
+volatileAcidity = wine_red$volatile.acidity
+citricAcid = wine_red$citric.acid
+residualSugar = wine_red$residual.sugar
+chlorides = wine_red$chlorides
+freeSulfurDioxide = wine_red$free.sulfur.dioxide
+totalSulfurDioxide = wine_red$total.sulfur.dioxide
+densityRed = wine_red$density
+pH = wine_red$pH
+sulphates = wine_red$sulphates
+alcohol = wine_red$alcohol
+quality = wine_red$quality
+
+redWine.lm <-lm(quality~fixedAcidity+volatileAcidity+citricAcid+residualSugar+
+                  chlorides+freeSulfurDioxide+totalSulfurDioxide+densityRed+pH+sulphates+alcohol)
+summary(redWine.lm)
+plot(redWine.lm)
+```
+
+removing predictors with p-values > 0.05, results in Fixed Acidity, Citric acid, residual sugar, and density being removed from the model due to the predictors not being significant. To confirm we check the reduced model.
+
+```{r}
+redWine2.lm <- lm(quality~volatileAcidity+chlorides+freeSulfurDioxide+
+                    totalSulfurDioxide+pH+sulphates+alcohol)
+summary(redWine2.lm)
+```
+
+```{r}
+require(leaps)
+b <- regsubsets(wine_red$quality ~ ., wine_red, nvmax = 11)
+rs <- summary(b)
+rs$which
+```
+-----------------------------------------------------AIC-------------------------------------------------------------------------------------------------------------
+
+```{r}
+AIC <- 1591*log(rs$rss/1591) + (2:12) * 2
+plot(AIC ~ I(1:11), ylab = "AIC", xlab = "Number of Predictors")
+```
+
+```{r}
+plot(2:12,rs$adjr2,xlab='No. of Paramters', ylab = 'Adjusted R-square')
+which.max(rs$adjr2)
+```
+
+```{r}
+plot(2:12, rs$cp, xlab="No. of Parameters", ylab = "Cp Statistic")
+abline(0,1)
+```
+------AIC Forward-------
+```{r}
+step(redWine.lm)
+```
+------AIC Backward--------
+```{r}
+step(redWine.lm, distraction = "backward")
+```
+
+-----------------------------------------------------Check Models----------------------------------------------------------------------------------------------------
+```{r}
+stripchart(data.frame(scale(wine_red)),method = "jitter", las=2,vertical= TRUE)
+```
+-------------------------------------------------------BIC-----------------------------------------------------------------------------------------------------------
+----BIC Backward----
+```{r}
+n = length(resid(redWine.lm))
+BIC_backward = step(redWine.lm,distraction = "backward", k = log(n))
+```
+----BIC Forward----
+```{r}
+n = length(resid(redWine.lm))
+BIC_backward = step(redWine.lm, k = log(n))
+```
+```{r}
+plot(lm(formula = quality ~ volatileAcidity + chlorides + freeSulfurDioxide +
+          totalSulfurDioxide + pH + sulphates + alcohol))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

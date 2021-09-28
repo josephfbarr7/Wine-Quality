@@ -1,0 +1,80 @@
+---
+title: "WhiteWineQuality"
+author: "Joseph Barr"
+date: "12/1/2020"
+output: html_document
+---
+
+```{r}
+wine_white <- read.csv("~/Data 467/winequality-white.csv",sep = ';')
+fixedAcidity = wine_white$fixed.acidity
+volatileAcidity = wine_white$volatile.acidity
+citricAcid = wine_white$citric.acid
+residualSugar = wine_white$residual.sugar
+chlorides = wine_white$chlorides
+freeSulfurDioxide = wine_white$free.sulfur.dioxide
+totalSulfurDioxide = wine_white$total.sulfur.dioxide
+densityWhite = wine_white$density
+pH = wine_white$pH
+sulphates = wine_white$sulphates
+alcohol = wine_white$alcohol
+quality = wine_white$quality
+
+whiteWine.lm <-lm(quality~fixedAcidity+volatileAcidity+citricAcid+residualSugar+chlorides+freeSulfurDioxide+totalSulfurDioxide+densityWhite+pH+sulphates+alcohol)
+summary(whiteWine.lm)
+plot(whiteWine.lm)
+```
+
+
+```{r}
+whiteWine2.lm <- lm(quality~fixedAcidity+volatileAcidity+residualSugar+freeSulfurDioxide+densityWhite+pH+sulphates+alcohol)
+summary(whiteWine2.lm)
+```
+
+```{r}
+require(leaps)
+b <- regsubsets(wine_white$quality ~ ., wine_white, nvmax = 11)
+rs <- summary(b)
+rs$which
+```
+
+```{r}
+AIC <- 1591*log(rs$rss/1591) + (2:12) * 2
+plot(AIC ~ I(1:11), ylab = "AIC", xlab = "Number of Predictors")
+```
+
+```{r}
+plot(2:12,rs$adjr2,xlab='No. of Paramters', ylab = 'Adjusted R-square')
+which.max(rs$adjr2)
+```
+
+```{r}
+plot(2:12, rs$cp, xlab="No. of Parameters", ylab = "Cp Statistic")
+abline(0,1)
+```
+------AIC Forward-------
+```{r}
+step(whiteWine.lm)
+```
+------AIC Backward--------
+```{r}
+step(whiteWine.lm, distraction = "backward")
+```
+
+```{r}
+stripchart(data.frame(scale(wine_white)),method = "jitter", las=2,vertical= TRUE)
+```
+----BIC Backward----
+```{r}
+n = length(resid(whiteWine.lm))
+BIC_backward = step(whiteWine.lm,distraction = "backward", k = log(n))
+```
+----BIC Forward----
+```{r}
+n = length(resid(whiteWine.lm))
+BIC_backward = step(whiteWine.lm, k = log(n))
+```
+```{r}
+plot(lm(formula = quality ~ fixedAcidity + volatileAcidity + residualSugar +
+          freeSulfurDioxide + densityWhite + pH + sulphates + alcohol))
+```
